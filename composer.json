@@ -1,5 +1,5 @@
 {
-    "name": "nitrado/code-mirror-bundle",
+    "name": "cosmow/code-mirror-bundle",
     "description": "This Bundle integrates CodeMirror editor into a Symfony project.",
     "keywords": ["codemirror", "php editor", "html editor", "editor"],
     "type": "symfony-bundle",
@@ -14,21 +14,19 @@
             "name": "Aaron Mueller",
             "homepage": "http://marbis.net/",
             "email": "aaron.mueller@marbis.net"
-        },
-        {
-            "name": "llupa"
         }
     ],
     "require": {
-        "php": ">=5.3.2",
-        "twig/twig": "*",
-        "laminas/laminas-json": "^3.1@dev"
+        "php": ">=7.4",
+        "symfony/framework-bundle": "^5.0 || ^6.0",
+        "twig/twig": "^3.8.0",
+        "symfony/assetic-bundle": "*",
+        "laminas/laminas-json": "^3.6"
     },
     "minimum-stability": "stable",
     "autoload": {
-        "psr-0": {
-            "Solution\\CodeMirrorBundle": ""
+        "psr-4": {
+            "Solution\\CodeMirrorBundle\\": "src/"
         }
-    },
-    "target-dir": "Solution/CodeMirrorBundle"
+    }
 }
