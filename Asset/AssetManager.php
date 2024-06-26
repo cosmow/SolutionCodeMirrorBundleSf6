@@ -4,7 +4,8 @@ namespace Solution\CodeMirrorBundle\Asset;
 
 use Symfony\Component\HttpKernel\Config\FileLocator;
 use Symfony\Component\Finder\Finder;
-use Doctrine\Common\Cache\PhpFileCache;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class AssetManager
 {
@@ -31,18 +32,21 @@ class AssetManager
         $this->fileLocator = $fileLocator;
         $this->modeDirs = $modeDirs;
         $this->themesDirs = $themesDirs;
-        $this->cacheDriver = new PhpFileCache($cacheDir);
+        $this->cacheDriver = new FilesystemAdapter('', 0, $cacheDir);
         $this->env = $env;
-        #check env and fetch cache
-        if ($this->env == 'prod' && $cacheModes = $this->cacheDriver->fetch(static::CACHE_MODES_NAME)) {
-            $this->modes = $cacheModes;
+
+        if ($this->env == 'prod') {
+            $this->modes = $this->cacheDriver->get(static::CACHE_MODES_NAME, function (ItemInterface $item) {
+                $item->expiresAfter(3600); // 1 hour
+                return $this->parseModes();
+            });
+
+            $this->themes = $this->cacheDriver->get(static::CACHE_THEMES_NAME, function (ItemInterface $item) {
+                $item->expiresAfter(3600); // 1 hour
+                return $this->parseThemes();
+            });
         } else {
             $this->parseModes();
-        }
-
-        if ($this->env == 'prod' && $cacheThemes = $this->cacheDriver->fetch(static::CACHE_THEMES_NAME)) {
-            $this->themes = $cacheThemes;
-        } else {
             $this->parseThemes();
         }
     }
@@ -50,25 +54,23 @@ class AssetManager
     public function addMode($key, $resource)
     {
         $this->modes[$key] = $resource;
-
         return $this;
     }
 
     public function getMode($key)
     {
-        return isset( $this->modes[$key]) ? $this->modes[$key] : false;
+        return isset($this->modes[$key]) ? $this->modes[$key] : false;
     }
 
     public function addTheme($key, $resource)
     {
         $this->themes[$key] = $resource;
-
         return $this;
     }
 
     public function getTheme($key)
     {
-        return isset( $this->themes[$key]) ? $this->themes[$key] : false;
+        return isset($this->themes[$key]) ? $this->themes[$key] : false;
     }
 
     public function getModes()
@@ -95,10 +97,8 @@ class AssetManager
                 $this->addModesFromFile($file);
             }
         }
-        #save to cache if env prod
-        if ($this->env == 'prod') {
-            $this->cacheDriver->save(static::CACHE_MODES_NAME, $this->getModes());
-        }
+
+        return $this->modes;
     }
 
     /**
@@ -114,11 +114,9 @@ class AssetManager
             }
         }
 
-                #save to cache if env prod
-        if ($this->env == 'prod') {
-            $this->cacheDriver->save(static::CACHE_MODES_NAME, $this->getThemes());
-        }
+        return $this->modes;
     }
+
     /**
      * Parse editor themes from dir
      */
@@ -131,10 +129,7 @@ class AssetManager
                 $this->addTheme($file->getBasename('.css'), $file->getPathname());
             }
         }
-        #save to cache if env prod
-        if ($this->env == 'prod') {
-            $this->cacheDriver->save(static::CACHE_THEMES_NAME, $this->getThemes());
-        }
+
+        return $this->themes;
     }
 }
-
