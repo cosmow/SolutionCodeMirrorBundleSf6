@@ -6,9 +6,10 @@ use Laminas\Json\Json;
 
 use Assetic\AssetManager;
 use Assetic\Asset\FileAsset;
+use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-class CodeMirrorExtension extends \Twig_Extension
+class CodeMirrorExtension extends AbstractExtension
 {
     /**
      * @var AssetManager
